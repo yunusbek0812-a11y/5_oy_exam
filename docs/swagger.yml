@@ -1,0 +1,384 @@
+openapi: 3.0.0
+
+info:
+  title: Car Dealership API
+  version: 1.0.0
+  description: Full backend API for Car Dealership (Auth + Cars + Categories)
+
+servers:
+  - url: http://localhost:4001/api
+
+tags:
+  - name: Auth
+  - name: Categories
+  - name: Cars
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegister:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    VerifyEmail:
+      type: object
+      required: [email, code]
+      properties:
+        email:
+          type: string
+        code:
+          type: string
+
+    Category:
+      type: object
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+
+    Car:
+      type: object
+      properties:
+        category:
+          type: string
+        name:
+          type: string
+        motor:
+          type: string
+        year:
+          type: number
+        color:
+          type: string
+        distance:
+          type: string
+        gearbox:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+
+    Me:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+
+paths:
+
+  # ================= AUTH =================
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        "201":
+          description: User created
+
+  /auth/verify:
+    post:
+      tags: [Auth]
+      summary: Verify email with code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmail'
+      responses:
+        "200":
+          description: Email verified
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        "200":
+          description: Success login
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+
+  # ================= CATEGORIES =================
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      responses:
+        "200":
+          description: List of categories
+
+    post:
+      tags: [Categories]
+      summary: Create category (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Category created
+
+  /categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get single category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category
+
+    put:
+      tags: [Categories]
+      summary: Update category (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Updated
+
+    delete:
+      tags: [Categories]
+      summary: Delete category (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+
+  # ================= CARS =================
+
+  /cars:
+    get:
+      tags: [Cars]
+      summary: Get all cars (pagination + filter)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cars list
+
+    post:
+      tags: [Cars]
+      summary: Create car (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                name:
+                  type: string
+                motor:
+                  type: string
+                year:
+                  type: number
+                color:
+                  type: string
+                distance:
+                  type: string
+                gearbox:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                imageInterior:
+                  type: string
+                  format: binary
+                imageExterior:
+                  type: string
+                  format: binary
+                modelImage:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Car created
+
+  /cars/{id}:
+    get:
+      tags: [Cars]
+      summary: Get single car
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Car details
+
+    put:
+      tags: [Cars]
+      summary: Update car (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                imageInterior:
+                  type: string
+                  format: binary
+                imageExterior:
+                  type: string
+                  format: binary
+                modelImage:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Updated
+
+    delete:
+      tags: [Cars]
+      summary: Delete car (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+
+  /cars/category/{categoryId}:
+    get:
+      tags: [Cars]
+      summary: Get cars by category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cars list by category
